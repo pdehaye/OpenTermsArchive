@@ -43,7 +43,7 @@ export async function recordSnapshot({
   const prefix = isFirstRecord ? 'Start tracking' : 'Update';
   let changelog = `${prefix} ${serviceId} ${documentType}`;
   changelog = extraChangelogContent ? `${changelog}\n\n${extraChangelogContent}` : changelog;
-  const recordResult = await snapshotRecorder.record({
+  const recordResult = await snapshotRecorder.recordInDB({
     serviceId,
     documentType,
     content,
@@ -110,5 +110,5 @@ export async function publish() {
 }
 
 export function getLatestSnapshot(serviceId, documentType) {
-  return snapshotRecorder.getLatestRecord(serviceId, documentType);
+  return snapshotRecorder.getLatestRecordInDb(serviceId, documentType);
 }
