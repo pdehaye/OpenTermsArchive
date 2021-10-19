@@ -32,9 +32,11 @@ let history;
   const sourceRepo = new Git(SNAPSHOTS_SOURCE_PATH);
 
   console.log('Waiting for git log… (this can take a while)');
+  console.time('git-log');
   const commits = (await sourceRepo.log(['--stat=4096'])).sort(
     (a, b) => new Date(a.date) - new Date(b.date)
   );
+  console.timeEnd('git-log');
   console.log(`Source repo contains ${commits.length} commits.\n`);
 
   if (initialize) {
