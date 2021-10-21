@@ -46,19 +46,30 @@ const url = 'mongodb://localhost:27017';
   const types = ['Terms of service', 'Privacy Policy'];
 
   let r = 0;
-  const max = 1000;
-   for (let index = 0; index < max; index++) {
-    const start = Date.now()
+  const total = 1000;
+  let min = 10000000;
+  let max = 0;
+   for (let index = 0; index < total; index++) {
     console.time('findOnePreciseDate');
+    const start = Date.now()
     const doc = await collection.findOne({serviceId: services[index % 6], documentType: 'Privacy Policy', authorDate: { $gte : randomDate(new Date(2010, 0, 1), new Date()) } });
     const stop = Date.now()
     const time = stop - start;
+    if (time > max) {
+      max = time;
+      console.log('--- > max', max);
+    }
+
+    if (time < min) {
+      min = time;
+      console.log('--- > min', min);
+    }
     r += time;
     console.log(doc?._id);
     console.timeEnd('findOnePreciseDate');
   }
 
-  console.log('average', r/max);
+  console.log('average', r/total, min, max);
   // console.time('findDocuments');
   // const findDocuments = await collection.find({serviceId:'AccuWeather', documentType: 'Privacy Policy' }).toArray();
   // console.log(findDocuments.length);
