@@ -10,11 +10,9 @@ import config from 'config';
 import events from 'events';
 import fetch from './fetcher/index.js';
 import logger from '../logger/index.js';
-import pTimeout from '@lolpants/ptimeout';
 
-const MAX_PARALLEL_DOCUMENTS_TRACKS = 1;
-const MAX_PARALLEL_REFILTERS = 1;
-const MAX_EXECUTION_TIME = 5 * 60 * 1000;
+const MAX_PARALLEL_DOCUMENTS_TRACKS = 20;
+const MAX_PARALLEL_REFILTERS = 20;
 
 export const AVAILABLE_EVENTS = [
   'snapshotRecorded',
@@ -26,6 +24,7 @@ export const AVAILABLE_EVENTS = [
   'recordsPublished',
   'inaccessibleContent',
   'error',
+  'error'
 ];
 
 const LOCAL_CONTRIBUTE_URL = 'http://localhost:3000/contribute/service';
@@ -54,79 +53,14 @@ export default class CGUs extends events.EventEmitter {
   }
 
   initQueues() {
-    this.trackDocumentChangesQueue = async.queue(async (documentDeclaration) => {
-      const timeMessage = `trackDocumentChangesQueue_${documentDeclaration.service.id}_${documentDeclaration.type}`;
-      console.time(timeMessage);
-      try {
-        const result = await pTimeout.default(
-          async () => this.trackDocumentChanges(documentDeclaration),
-          MAX_EXECUTION_TIME
-        );
-        console.timeEnd(timeMessage);
-        return result;
-      } catch (e) {
-        console.timeEnd(timeMessage);
-        if (!(e instanceof pTimeout.TimeoutError)) {
-          throw e;
-        }
+    this.trackDocumentChangesQueue = async.queue(async documentDeclaration => this.trackDocumentChanges(documentDeclaration),
+      MAX_PARALLEL_DOCUMENTS_TRACKS);
+    this.refilterDocumentsQueue = async.queue(async documentDeclaration => this.refilterAndRecordDocument(documentDeclaration),
+      MAX_PARALLEL_REFILTERS);
 
-        logger.error({
-          message: e.toString(),
-          serviceId: documentDeclaration.service.id,
-          type: documentDeclaration.type,
-        });
-      }
-    }, MAX_PARALLEL_DOCUMENTS_TRACKS);
-
-    this.refilterDocumentsQueue = async.queue(async (documentDeclaration) => {
-      const timeMessage = `refilterDocumentsQueue_${documentDeclaration.service.id}_${documentDeclaration.type}`;
-      console.time(timeMessage);
-      try {
-        const result = await pTimeout.default(
-          async () => this.refilterAndRecordDocument(documentDeclaration),
-          MAX_EXECUTION_TIME
-        );
-        console.timeEnd(timeMessage);
-        return result;
-      } catch (e) {
-        console.timeEnd(timeMessage);
-        if (!(e instanceof pTimeout.TimeoutError)) {
-          throw e;
-        }
-        logger.error({
-          message: e.toString(),
-          serviceId: documentDeclaration.service.id,
-          type: documentDeclaration.type,
-        });
-      }
-    }, MAX_PARALLEL_REFILTERS);
-
-    const queueErrorHandler = (createError) => (error, messageOrObject) => {
-      const { location, service, contentSelectors, noiseSelectors, type } = messageOrObject;
-
+    const queueErrorHandler = (error, { service, type }) => {
       if (error instanceof InaccessibleContentError) {
-        if (!createError) {
-          return this.emit('inaccessibleContent', error, service.id, type);
-        }
-
-        if (error.toString().includes('HttpError: API rate limit exceeded for user ID')) {
-          // This is an error due to send in blue quota, bypass
-          return;
-        }
-
-        // this is a promise and as error handler is not async
-        // it might resolve
-        return this.createError({
-          contentSelectors,
-          noiseSelectors,
-          url: location,
-          name: service.id,
-          documentType: type,
-          message: error.toString(),
-        }).then(() => {
-          // as queueErrorHandler is not async
-          // we just use an empty callback
-        });
+        return this.emit('inaccessibleContent', error, service.id, type);
       }
 
       this.emit('error', error, service.id, type);
@@ -134,8 +68,8 @@ export default class CGUs extends events.EventEmitter {
       throw error;
     };
 
-    this.trackDocumentChangesQueue.error(queueErrorHandler(true));
-    this.refilterDocumentsQueue.error(queueErrorHandler(false));
+    this.trackDocumentChangesQueue.error(queueErrorHandler);
+    this.refilterDocumentsQueue.error(queueErrorHandler);
   }
 
   attach(listener) {
@@ -149,12 +83,10 @@ export default class CGUs extends events.EventEmitter {
   }
 
   async trackChanges(servicesIds) {
-    this._forEachDocumentOf(servicesIds, async (documentDeclaration) =>
-      this.trackDocumentChangesQueue.push(documentDeclaration)
-    );
+    console.log('servicesIds', servicesIds);
+    this._forEachDocumentOf(servicesIds, documentDeclaration => this.trackDocumentChangesQueue.push(documentDeclaration));
 
     await this.trackDocumentChangesQueue.drain();
-
     await this.publish();
   }
 
@@ -169,12 +101,17 @@ export default class CGUs extends events.EventEmitter {
       type,
     } = documentDeclaration;
 
+    // console.time(`${location} ${type} ${service.id}`);
+    // console.log('--> fetch', location);
     const { mimeType, content } = await fetch({
       url: location,
       executeClientScripts,
       cssSelectors: documentDeclaration.getCssSelectors(),
       headers,
     });
+    // console.log('--> fin fetch', location);
+    // console.timeEnd(`${location} ${type} ${service.id}`);
+    // console.log('');
     await github.closeIssueIfExists({
       labels: ['fix-document'],
       title: `Fix ${service.id} - ${type}`,
@@ -311,9 +248,9 @@ Thanks
 
   async _forEachDocumentOf(servicesIds = [], callback) {
     servicesIds.forEach((serviceId) => {
-      this.services[serviceId].getDocumentTypes().forEach((documentType) => {
-        callback(this.services[serviceId].getDocumentDeclaration(documentType));
-      });
+      this.services[serviceId].getDocumentTypes().forEach((documentType) =>
+        callback(this.services[serviceId].getDocumentDeclaration(documentType))
+      );
     });
   }
 
