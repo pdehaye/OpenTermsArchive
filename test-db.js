@@ -22,9 +22,9 @@ const url = 'mongodb://localhost:27017';
 
   // const snapshosts = JSON.parse(await fs.readFile(SNAPSHOTS_PATH));
 
-  // function randomDate(start, end) {
-  //   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  // }
+  function randomDate(start, end) {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  }
 
   // for (let index = 0; index < 250000; index++) {
   //   const { serviceId, documentType, content, fileExtension, changelog, authorDate } = snapshosts[index % 10000];
@@ -37,11 +37,28 @@ const url = 'mongodb://localhost:27017';
   // console.timeEnd();
   // console.log('insertion finished');
 
-  console.time('findOnePreciseDate');
-  const doc = await collection.findOne({serviceId:'AccuWeather', documentType: 'Privacy Policy', authorDate: { $gte : new Date("2010-01-01T16:20:15.750Z") } });
-  console.log(doc);
-  console.timeEnd('findOnePreciseDate');
+  // console.time('findOnePreciseDate');
+  // const doc = await collection.findOne({serviceId:'AccuWeather', documentType: 'Privacy Policy', authorDate: { $gte : new Date("2010-01-01T16:20:15.750Z") } });
+  // console.log(doc);
+  // console.timeEnd('findOnePreciseDate');
 
+  const services = ['AccuWeather', 'Intuit', 'Ancestry', 'Directv', 'Amazon.com', 'Womans Day', 'Bestbuy'];
+  const types = ['Terms of service', 'Privacy Policy'];
+
+  let r = 0;
+  const max = 1000;
+   for (let index = 0; index < max; index++) {
+    const start = Date.now()
+    console.time('findOnePreciseDate');
+    const doc = await collection.findOne({serviceId: services[index % 6], documentType: 'Privacy Policy', authorDate: { $gte : randomDate(new Date(2010, 0, 1), new Date()) } });
+    const stop = Date.now()
+    const time = stop - start;
+    r += time;
+    console.log(doc?._id);
+    console.timeEnd('findOnePreciseDate');
+  }
+
+  console.log('average', r/max);
   // console.time('findDocuments');
   // const findDocuments = await collection.find({serviceId:'AccuWeather', documentType: 'Privacy Policy' }).toArray();
   // console.log(findDocuments.length);
