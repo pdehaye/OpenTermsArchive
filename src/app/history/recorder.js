@@ -10,7 +10,7 @@
  import { MongoClient } from 'mongodb';
  const url = 'mongodb://localhost:27017';
  const client = new MongoClient(url);
- const dbName = 'OTA';
+ const dbName = 'OTA2';
 
  const fs = fsApi.promises;
  let collection;

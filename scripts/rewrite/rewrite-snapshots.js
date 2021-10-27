@@ -4,6 +4,12 @@ import path from 'path';
 import * as initializer from './initializer/index.js';
 import * as renamer from './renamer/index.js';
 
+import { Octokit } from 'octokit';
+import nodeFetch from 'node-fetch';
+
+const octokit = new Octokit();
+
+
 import Git from '../../src/app/history/git.js';
 import { loadFile } from './utils.js';
 
@@ -25,6 +31,7 @@ const COUNTERS = {
 
 let history;
 (async () => {
+  console.log(await octokit.request('GET /rate_limit'));
   console.time('Total time');
   console.log('Start rewritting history.');
 
@@ -51,27 +58,30 @@ let history;
   const filteredCommits = commits.filter(({ message }) =>
     message.match(/^(Start tracking|Update)/));
 
+
+  console.log('filteredCommits', filteredCommits.length);
   /* eslint-disable no-await-in-loop */
   /* eslint-disable no-continue */
-  for (const commit of filteredCommits) {
+  // for (const commit of filteredCommits) {
+    filteredCommits.forEach(async (commit) => {
     console.log(Date.now(), commit.hash, commit.date, commit.message);
 
     await sourceRepo.checkout(commit.hash);
 
     const [{ file: relativeFilePath }] = commit.diff.files;
 
-    const { content, mimeType } = await loadFile(SNAPSHOTS_SOURCE_PATH, relativeFilePath);
-
     let serviceId = path.dirname(relativeFilePath);
     let documentType = path.basename(relativeFilePath, path.extname(relativeFilePath));
 
     ({ serviceId, documentType } = renamer.applyRules(serviceId, documentType));
 
+    const body = await getCommitContent(commit.hash);
+
     const { id: snapshotId } = await history.recordSnapshot({
       serviceId,
       documentType,
-      content,
-      mimeType,
+      content: body,
+      mimeType: '.html',
       authorDate: commit.date,
       extraChangelogContent: commit.body,
     });
@@ -81,17 +91,33 @@ let history;
     } else {
       COUNTERS.skippedNoChanges++;
     }
-  }
+  });
 
-  const totalTreatedCommits = Object.values(COUNTERS).reduce((acc, value) => acc + value, 0);
-  console.log(`\nCommits treated: ${totalTreatedCommits} on ${filteredCommits.length}`);
-  console.log(`⌙ Commits rewritten: ${COUNTERS.rewritten}`);
-  console.log(`⌙ Skipped not changed commits: ${COUNTERS.skippedNoChanges}`);
-  console.timeEnd('Total time');
+  // const totalTreatedCommits = Object.values(COUNTERS).reduce((acc, value) => acc + value, 0);
+  // console.log(`\nCommits treated: ${totalTreatedCommits} on ${filteredCommits.length}`);
+  // console.log(`⌙ Commits rewritten: ${COUNTERS.rewritten}`);
+  // console.log(`⌙ Skipped not changed commits: ${COUNTERS.skippedNoChanges}`);
+  // console.timeEnd('Total time');
 
-  if (totalTreatedCommits != filteredCommits.length) {
-    console.error(
-      '\n⚠ WARNING: Total treated commits does not match the total number of commits to be treated! ⚠'
-    );
-  }
+  // if (totalTreatedCommits != filteredCommits.length) {
+  //   console.error(
+  //     '\n⚠ WARNING: Total treated commits does not match the total number of commits to be treated! ⚠'
+  //   );
+  // }
 })();
+
+async function getCommitContent(sha) {
+  console.time(sha);
+  const result = await octokit.request(`GET /repos/ambanum/OpenTermsArchive-snapshots/commits/${sha}`, {
+    owner: 'ambanum',
+    repo: 'OpenTermsArchive-snapshots',
+    commit_sha: sha
+  })
+
+  console.log(result.data.files[0].raw_url);
+
+  const response = await nodeFetch(result.data.files[0].raw_url);
+  console.timeEnd(sha);
+
+  return await response.text();
+}
