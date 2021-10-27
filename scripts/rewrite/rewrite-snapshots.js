@@ -60,7 +60,7 @@ let history;
   /* eslint-disable no-continue */
   // for (const commit of filteredCommits) {
 
-  const q = async.queue(async commit => handleCommit(commit), 15);
+  const q = async.queue(async commit => handleCommit(commit), 20);
 
   const handleCommit = async (commit) => {
     console.log(Date.now(), commit.hash, commit.date, commit.message);
@@ -85,6 +85,7 @@ let history;
       mimeType: mime.getType(extension),
       authorDate: commit.date,
       extraChangelogContent: commit.body,
+      sha: commit.hash,
     });
 
     if (snapshotId) {

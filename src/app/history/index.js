@@ -38,6 +38,7 @@ export async function recordSnapshot({
   mimeType,
   authorDate,
   extraChangelogContent,
+  sha,
 }) {
   const isFirstRecord = !(await snapshotRecorder.isTracked(serviceId, documentType));
   const prefix = isFirstRecord ? 'Start tracking' : 'Update';
@@ -50,6 +51,7 @@ export async function recordSnapshot({
     changelog,
     mimeType,
     authorDate,
+    sha,
   });
 
   return {
