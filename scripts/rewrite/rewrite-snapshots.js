@@ -4,6 +4,8 @@ import config from 'config';
 import path from 'path';
 import * as initializer from './initializer/index.js';
 import * as renamer from './renamer/index.js';
+import logger from '../../src/logger/index.js';
+import { performance } from 'perf_hooks';
 
 import nodeFetch from 'node-fetch';
 
@@ -63,21 +65,18 @@ let history;
   const q = async.queue(async commit => handleCommit(commit), 20);
 
   const handleCommit = async (commit) => {
-    console.log(Date.now(), commit.hash, commit.date, commit.message);
-
-    await sourceRepo.checkout(commit.hash);
-
+    logger.info({ message: `Start to handle commit ${commit.hash}, ${commit.date}, ${commit.message}` });
     const [{ file: relativeFilePath }] = commit.diff.files;
 
     let serviceId = path.dirname(relativeFilePath);
     let extension = path.extname(relativeFilePath);
     let documentType = path.basename(relativeFilePath, extension);
 
-
     ({ serviceId, documentType } = renamer.applyRules(serviceId, documentType));
 
     const body = await getCommitContent({sha: commit.hash, serviceId, documentType, extension: extension.replace('.', '')});
 
+    const start = performance.now();
     const { id: snapshotId } = await history.recordSnapshot({
       serviceId,
       documentType,
@@ -87,7 +86,8 @@ let history;
       extraChangelogContent: commit.body,
       sha: commit.hash,
     });
-
+    const end = performance.now();
+    logger.info({ message: `Record in ${Number(end - start).toFixed(2)} ms`, serviceId, type: documentType, sha: commit.hash })
     if (snapshotId) {
       COUNTERS.rewritten++;
     } else {
@@ -122,12 +122,11 @@ let history;
 })();
 
 async function getCommitContent({sha, serviceId, documentType, extension}) {
-  console.time(sha);
-  console.log(sha, serviceId, documentType, extension);
+  const start = performance.now();
   const url = `https://raw.githubusercontent.com/ambanum/OpenTermsArchive-snapshots/${sha}/${encodeURI(serviceId)}/${encodeURI(documentType)}.${extension}`;
-  console.log(url);
   const response = await nodeFetch(url);
-  console.timeEnd(sha);
+  const end = performance.now();
+  logger.info({ message: `Fetch in ${Number(end - start).toFixed(2)} ms`, serviceId, type: documentType, sha })
 
   return await response.text();
 }

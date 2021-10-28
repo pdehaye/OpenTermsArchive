@@ -10,12 +10,12 @@ const { combine, timestamp, printf, colorize } = winston.format;
 const alignedWithColorsAndTime = combine(
   colorize(),
   timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  printf(({ level, message, timestamp, serviceId, type }) => {
+  printf(({ level, message, timestamp, serviceId, type, sha }) => {
     let prefix = '';
     if (serviceId && type) {
       prefix = `${serviceId} — ${type}`;
     }
-    return `${timestamp} ${level.padEnd(15)} ${prefix.padEnd(55)} ${message}`;
+    return `${timestamp} ${level.padEnd(15)} ${sha? `${sha.padEnd(10)} `: ''}${prefix.padEnd(55)} ${message}`;
   })
 );
 

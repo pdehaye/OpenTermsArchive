@@ -45,7 +45,6 @@
     const fileExtension = mime.getExtension(mimeType);
 
     const insertResult = await collection.insertOne({ serviceId, documentType, content, fileExtension, changelog, authorDate, sha });
-    console.log('Inserted documents =>', insertResult.insertedId.toString());
 
     return {
       id: insertResult.insertedId.toString(),
