@@ -1,21 +1,16 @@
 name: Deploy
 
 on:
-  push:
-    branches: [master]
   workflow_call:
 jobs:
-  test:
-    uses: ambanum/OpenTermsArchive/.github/workflows/test.yml@master
   deploy:
-    needs: [test]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: master
       - run: git checkout HEAD
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
