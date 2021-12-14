@@ -60,9 +60,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
     archivist.attach(new Notifier(archivist.serviceDeclarations));
   }
 
-  if (process.env.GITHUB_TOKEN) {
-    archivist.attach(new GitHub());
-  }
+  // if (process.env.GITHUB_TOKEN) {
+  //   archivist.attach(new GitHub());
+  // }
 
   await archivist.trackChanges(serviceIds);
 
