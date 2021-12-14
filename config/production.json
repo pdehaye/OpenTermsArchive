@@ -8,8 +8,8 @@
       "storage": {
         "git": {
           "path": "../ota-versions",
-          "publish": true,
-          "prefixMessageToSnapshotId": "This version was recorded after filtering snapshot https://github.com/ambanum/OpenTermsArchive-snapshots/commit/",
+          "publish": false,
+          "prefixMessageToSnapshotId": "This version was recorded after filtering snapshot from MongoDB with id: ",
           "author": {
             "name": "Open Terms Archive Bot",
             "email": "bot@opentermsarchive.org"
@@ -19,13 +19,10 @@
     },
     "snapshots": {
       "storage": {
-        "git": {
-          "path": "../ota-snapshots",
-          "publish": true,
-          "author": {
-            "name": "Open Terms Archive Bot",
-            "email": "bot@opentermsarchive.org"
-          }
+        "mongo": {
+          "connectionURI": "mongodb://localhost:27017",
+          "database": "open-terms-archive",
+          "collection": "snapshots"
         }
       }
     }
@@ -35,12 +32,6 @@
       "to": "admin@opentermsarchive.org",
       "from": "noreply@opentermsarchive.org",
       "sendWarnings": false
-    }
-  },
-  "notifier": {
-    "sendInBlue": {
-      "administratorsListId": 9,
-      "updatesListId": 191
     }
   }
 }
