@@ -14,8 +14,8 @@ const UPDATE_DOCUMENT_LABEL = process.env.GITHUB_LABEL_UPDATE || 'update';
 
 const LOCAL_CONTRIBUTE_URL = 'http://localhost:3000/contribute/service';
 const CONTRIBUTE_URL = 'https://opentermsarchive.org/en/contribute/service';
-const GITHUB_VERSIONS_URL = 'https://github.com/ambanum/OpenTermsArchive-versions/blob/master';
-const GITHUB_REPO_URL = `https://github.com/${process.env.GITHUB_REPO}/blob/master/declarations`;
+const GITHUB_VERSIONS_URL = 'https://github.com/OpenTermsArchive/versions-dating/blob/main';
+const GITHUB_REPO_URL = `https://github.com/${process.env.GITHUB_REPO}/blob/main/declarations`;
 const GOOGLE_URL = 'https://www.google.com/search?q=';
 
 export default class GitHub {

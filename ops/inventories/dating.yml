@@ -1,0 +1,16 @@
+all:
+  children:
+    dev:
+      hosts:
+        vps-99ae1d89.vps.ovh.net:
+          ansible_user: debian
+          ansible_ssh_extra_args: -i ../services-dating/id_ed25519_dating
+      vars:  # TODO: I don't know how to override the variables in `ota/vars/main.yml`, they should be overridden to these values
+        services_directory: ota-services-dating
+        services_repository: https://github.com/OpenTermsArchive/services-dating.git
+        snapshots_directory: ota-snapshots-dating
+        snapshots_repository: git@github.com:OpenTermsArchive/snapshots-dating.git
+        snapshots_branch: main
+        versions_directory: ota-versions-dating
+        versions_repository: git@github.com:OpenTermsArchive/versions-dating.git
+        versions_branch: main

@@ -153,7 +153,7 @@ async function main() {
     await makeData(commit); // eslint-disable-line no-await-in-loop
   }
 
-  git.checkout('master'); // back to master when done
+  git.checkout('main'); // back to main branch when done
 
   await fse.copy(TEMP_WORK_FOLDER, finalPath); // copy temp dir to final destination
 
