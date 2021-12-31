@@ -1,6 +1,7 @@
 - name: Clone Open Terms Archive engine
   git:
-    repo: '{{ repository }}'
+    repo: '{{ archivist_repository }}'
+    version: '{{ archivist_version }}'
     dest: '/home/{{ ansible_user }}/{{ app }}'
     force: yes
     accept_hostkey: yes

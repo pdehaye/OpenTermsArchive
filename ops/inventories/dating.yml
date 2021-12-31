@@ -6,6 +6,8 @@ all:
           ansible_user: debian
           ansible_ssh_extra_args: -i ../services-dating/id_ed25519_dating
       vars:  # TODO: I don't know how to override the variables in `ota/vars/main.yml`, they should be overridden to these values
+        archivist_repository: https://github.com/ambanum/OpenTermsArchive.git
+        archivist_version: dating
         services_directory: ota-services-dating
         services_repository: https://github.com/OpenTermsArchive/services-dating.git
         snapshots_directory: ota-snapshots-dating
