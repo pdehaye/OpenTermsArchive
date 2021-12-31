@@ -97,7 +97,7 @@
     cmd: pm2 start --name "{{ app }}" --exp-backoff-restart-delay=1000 npm -- run start:scheduler
     chdir: '/home/{{ ansible_user }}/{{ app }}'
   environment:
-    NODE_ENV: production
+    NODE_ENV: dating
   tags:
     - restart
     - start
