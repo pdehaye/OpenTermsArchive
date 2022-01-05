@@ -35,5 +35,5 @@ echo ""
 
 echo "=============== [4] ==============="
 echo "Releasing dataset to GitHub"
-gh release -R ambanum/OpenTermsArchive-versions create $TAG ./data/${DATASET}.zip -t "$DATE Dump" -n "New dataset release :tada:"
+gh release -R OpenTermsArchive/versions-dating create $TAG ./data/${DATASET}.zip -t "$DATE Dump" -n "New dataset release :tada:"
 echo ""
