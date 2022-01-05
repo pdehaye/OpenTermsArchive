@@ -2,11 +2,11 @@ name: Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ dating ]
 
 jobs:
   test:
-    uses: "ambanum/OpenTermsArchive/.github/workflows/test.yml@master"
+    uses: "ambanum/OpenTermsArchive/.github/workflows/test.yml@dating"
   deploy:
     needs: [ test ]
     runs-on: ubuntu-latest
@@ -21,4 +21,4 @@ jobs:
       - run: echo "${{ secrets.ANSIBLE_VAULT_KEY }}" > vault.key
       - run: pip install --upgrade setuptools
       - run: pip install 'ansible ~= 2.9'
-      - run: ansible-playbook ops/site.yml --inventory ops/inventories/production.yml
+      - run: ansible-playbook ops/site.yml --inventory ops/inventories/dating.yml
