@@ -31,6 +31,15 @@ VirtualBox is not compatible with Apple Silicon (M1…) processors. You will thu
 
 To that end, install Docker Desktop through a [manual install](https://hub.docker.com/editions/community/docker-ce-desktop-mac) or with `brew install homebrew/cask/docker`.
 
+vagrant plugin install docker
+vagrant up --provider=docker
+
+
+vagrant halt # stop machine
+vagrant ssh
+
+
+
 ## Usage
 
 To avoid making changes on the production server by mistake, by default all commands will only affect the Vagrant development virtual machine (VM). Note that the VM needs to be started before with `vagrant up`.  If you’re on an Apple Silicon machine or want to use Docker instead of VirtualBox, type `vagrant up --provider=docker`.
