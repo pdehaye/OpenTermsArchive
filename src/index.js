@@ -4,8 +4,6 @@ import { fileURLToPath } from 'url';
 import config from 'config';
 import scheduler from 'node-schedule';
 
-import { publishRelease } from '../scripts/release/releasedataset.js';
-
 import Archivist from './archivist/index.js';
 import logger from './logger/index.js';
 import Notifier from './notifier/index.js';
@@ -75,15 +73,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
   scheduler.scheduleJob('30 */6 * * *', async () => {
     await archivist.trackChanges(serviceIds);
   });
-
-  if (config.get('dataset.publish')) {
-    logger.info('Release will be created every 24 hours at 04h15');
-    scheduler.scheduleJob('15 4 * * *', async () => {
-      logger.info('Start creating the release…');
-      await publishRelease();
-      logger.info('Release published');
-    });
-  }
 }());
 
 function initStorageAdapters() {
